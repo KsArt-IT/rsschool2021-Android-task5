@@ -6,4 +6,5 @@ import javax.inject.Inject
 class CatRepositoryImpl @Inject constructor(
     private val api: CatApi
 ): CatRepository {
+
 }
