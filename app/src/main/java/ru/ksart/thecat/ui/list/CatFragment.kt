@@ -9,6 +9,8 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.FragmentNavigatorExtras
+import androidx.navigation.fragment.findNavController
 import androidx.paging.PagingData
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
@@ -93,7 +95,11 @@ class CatFragment : Fragment() {
 
     private fun showDetail(item: CatResponse, imageView: ImageView) {
         DebugHelper.log("CatFragment|showDetail")
-//        findNavController()
+        val extras = FragmentNavigatorExtras(
+            imageView to item.id
+        )
+        val action = CatFragmentDirections.actionCatFragmentToCatDetailFragment(item)
+        findNavController().navigate(action, extras)
     }
 
     private fun <T> views(block: FragmentCatBinding.() -> T): T? = binding?.block()
