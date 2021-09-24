@@ -11,5 +11,5 @@ data class CatResponse(
     val url: String,
     @Json(name = "breeds")
     val breeds: List<Breeds> = emptyList(),
-    var indexInResponse: Int = -1,
+//    var indexInResponse: Int = -1,
 )

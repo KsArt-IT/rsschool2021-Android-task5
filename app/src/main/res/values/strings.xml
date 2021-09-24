@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">TheCat</string>
+    <string name="retry_button_text">Retry</string>
+    <string name="list_empty_text">The list is empty</string>
 </resources>

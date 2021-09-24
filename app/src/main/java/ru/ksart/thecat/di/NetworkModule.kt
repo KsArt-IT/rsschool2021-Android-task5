@@ -33,23 +33,21 @@ class NetworkModule {
     @Provides
     fun provideOkHttpClient(
         @LoggingInterceptorForOkHttpClient loggingInterceptor: Interceptor,
-        @ApiKeyInterceptorForOkHttpClient apiKeyInterceptor: ApiKeyInterceptor
+        @ApiKeyInterceptorForOkHttpClient apiKeyInterceptor: Interceptor
     ): OkHttpClient {
         return OkHttpClient.Builder()
-            .addNetworkInterceptor(apiKeyInterceptor)
             .addNetworkInterceptor(loggingInterceptor)
+            .addNetworkInterceptor(apiKeyInterceptor)
             .build()
     }
 
     @Provides
     @Singleton
-    fun provideRetrofit(
-        okHttpClient: OkHttpClient
-    ): Retrofit {
+    fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
         return Retrofit.Builder()
-            .baseUrl("https://api.thecatapi.com/v1/images/search")
-            .addConverterFactory(MoshiConverterFactory.create())
+            .baseUrl(CatApi.BASE_URL)
             .client(okHttpClient)
+            .addConverterFactory(MoshiConverterFactory.create())
             .build()
     }
 
