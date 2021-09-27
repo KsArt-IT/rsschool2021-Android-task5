@@ -12,6 +12,7 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.create
 import ru.ksart.thecat.model.networking.ApiKeyInterceptor
 import ru.ksart.thecat.model.networking.CatApi
+import ru.ksart.thecat.model.networking.DownloadApi
 import javax.inject.Qualifier
 import javax.inject.Singleton
 
@@ -54,6 +55,15 @@ class NetworkModule {
     @Provides
     @Singleton
     fun provideCatApi(retrofit: Retrofit): CatApi = retrofit.create()
+
+    @Provides
+    @Singleton
+    fun provideDownloadApi(): DownloadApi {
+        val retrofit = Retrofit.Builder()
+            .baseUrl("https://google.com")
+            .build()
+        return retrofit.create()
+    }
 }
 
 @Qualifier

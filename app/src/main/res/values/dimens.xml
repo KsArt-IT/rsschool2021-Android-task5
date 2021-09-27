@@ -7,4 +7,5 @@
     <dimen name="item_breed_margin">4dp</dimen>
     <dimen name="item_breed_elevation">4dp</dimen>
     <dimen name="item_breed_padding">4dp</dimen>
+    <dimen name="large_margin">16dp</dimen>
 </resources>

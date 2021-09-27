@@ -4,25 +4,41 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.view.doOnPreDraw
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.navArgs
 import androidx.transition.TransitionInflater
 import coil.load
 import coil.request.ImageRequest
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
+import ru.ksart.thecat.ui.extensions.toast
 import ru.ksart.thecat.R
 import ru.ksart.thecat.databinding.FragmentCatDetailBinding
 
-class CatDetailFragment: Fragment() {
+@AndroidEntryPoint
+class CatDetailFragment : Fragment() {
 
-    private var binding: FragmentCatDetailBinding? = null
+    private var _binding: FragmentCatDetailBinding? = null
+    private val binding get() = requireNotNull(_binding) { "Error: binding is not initialized" }
+
+    private val viewModel by viewModels<DownloadViewModel>()
 
     private val args: CatDetailFragmentArgs by navArgs()
 
     private val item by lazy { args.item }
 
+    // для выбора директории с помощью системного пикера, инициализировать в onCreate
+    private lateinit var createMediaLauncher: ActivityResultLauncher<String>
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        createMediaLauncher = createMediaLauncher()
         // установим свою анимацию перехода
         sharedElementEnterTransition =
             TransitionInflater.from(context).inflateTransition(R.transition.movie)
@@ -34,20 +50,22 @@ class CatDetailFragment: Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View = FragmentCatDetailBinding.inflate(inflater).also { binding = it }.root
+    ): View = FragmentCatDetailBinding.inflate(inflater).also { _binding = it }.root
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        bindViewModel()
+        initListener()
         showDetail()
     }
 
     override fun onDestroyView() {
-        binding = null
+        _binding = null
         super.onDestroyView()
     }
 
     private fun showDetail() {
-        binding?.run {
+        binding.run {
             imageDetail.apply { transitionName = item.id }
                 .load(item.url) {
                     listener(
@@ -67,5 +85,44 @@ class CatDetailFragment: Fragment() {
                 description.text = item.breeds[0].description
             }
         }
+    }
+
+    private fun initListener() {
+        binding.save.setOnClickListener {
+            viewModel.saveMedia(item.url)
+        }
+        binding.saveAs.setOnClickListener {
+            viewModel.saveAsMedia(item.url)
+        }
+    }
+
+    private fun bindViewModel() {
+        lifecycleScope.launchWhenStarted {
+            viewModel.isLoading.collect(::showLoading)
+        }
+        lifecycleScope.launchWhenStarted {
+            viewModel.isToast.collect(::toast)
+        }
+        lifecycleScope.launchWhenStarted {
+            viewModel.saveTo.collectLatest { (name, _) ->
+                if (name.isNotBlank()) createFile(name)
+            }
+        }
+    }
+
+    private fun createMediaLauncher() = registerForActivityResult(
+        ActivityResultContracts.CreateDocument()
+    ) { uri ->
+        viewModel.saveAsMediaTo(uri)
+    }
+
+    private fun createFile(name: String) {
+        createMediaLauncher.launch(name)
+    }
+
+    private fun showLoading(isLoading: Boolean) {
+        binding.save.isEnabled = isLoading.not()
+        binding.saveAs.isEnabled = isLoading.not()
+        binding.progress.isVisible = isLoading
     }
 }
