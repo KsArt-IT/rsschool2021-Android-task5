@@ -1,4 +1,4 @@
-package ru.ksart.thecat.ui.list.adapter
+package ru.ksart.thecat.ui.list.adapter.cat
 
 import android.view.LayoutInflater
 import android.view.ViewGroup

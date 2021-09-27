@@ -3,5 +3,6 @@
     <string name="retry_button_text">Retry</string>
     <string name="list_empty_text">The list is empty</string>
     <string name="breed_title">Breed: %s</string>
+    <string name="save_button_text">save</string>
 
 </resources>

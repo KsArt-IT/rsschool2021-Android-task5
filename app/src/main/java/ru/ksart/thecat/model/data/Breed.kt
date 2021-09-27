@@ -7,7 +7,7 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 @JsonClass(generateAdapter = true)
-data class Breeds(
+data class Breed(
     @Json(name = "id")
     val id: String,
     @Json(name = "name")
@@ -20,5 +20,7 @@ data class Breeds(
     val origin: String = "",
     @Json(name = "wikipedia_url")
     val wikipedia: String = "",
-): Parcelable
+    @Json(name = "image")
+    val breedImage: BreedImage? = null,
+) : Parcelable
 //https://api.thecatapi.com/v1/breeds

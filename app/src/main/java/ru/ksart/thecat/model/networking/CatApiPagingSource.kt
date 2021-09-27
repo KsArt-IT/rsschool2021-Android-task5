@@ -9,6 +9,7 @@ import java.io.IOException
 
 class CatApiPagingSource(
     private val catApi: CatApi,
+    private val query: String
 ) : PagingSource<Int, CatResponse>() {
 
     override fun getRefreshKey(state: PagingState<Int, CatResponse>): Int? {
@@ -21,8 +22,9 @@ class CatApiPagingSource(
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, CatResponse> {
         val position = params.key ?: CatApi.CAT_STARTING_PAGE_INDEX
         return try {
-            DebugHelper.log("CatApiPagingSource|load catApi.searchCats")
-            val response  = catApi.searchCats(page = position, limit = params.loadSize)
+            DebugHelper.log("CatApiPagingSource|load catApi.searchCats breed=$query")
+            val response =
+                catApi.searchCats(page = position, limit = params.loadSize, breedId = query)
             if (response.isSuccessful) {
                 val catResponse = response.body() ?: emptyList()
                 DebugHelper.log("CatApiPagingSource|load list=${catResponse.size}")
@@ -39,14 +41,14 @@ class CatApiPagingSource(
                 )
             } else {
                 val e = Exception("Unknown error")
-                DebugHelper.log("CatApiPagingSource|load error(Unknown error): ",e)
+                DebugHelper.log("CatApiPagingSource|load error(Unknown error): ", e)
                 LoadResult.Error(e)
             }
         } catch (e: IOException) {
-            DebugHelper.log("CatApiPagingSource|load error(IOException): ",e)
+            DebugHelper.log("CatApiPagingSource|load error(IOException): ", e)
             LoadResult.Error(e)
         } catch (e: HttpException) {
-            DebugHelper.log("CatApiPagingSource|load error(HttpException): ",e)
+            DebugHelper.log("CatApiPagingSource|load error(HttpException): ", e)
             LoadResult.Error(e)
         }
     }

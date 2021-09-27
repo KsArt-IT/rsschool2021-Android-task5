@@ -1,4 +1,4 @@
-package ru.ksart.thecat.ui.list.adapter
+package ru.ksart.thecat.ui.list.adapter.cat
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -12,10 +12,10 @@ import ru.ksart.thecat.model.data.CatResponse
 class CatViewHolder(
     private val binding: ItemCatBinding,
     onClick: (CatResponse, ImageView) -> Unit
-): RecyclerView.ViewHolder(binding.root) {
+) : RecyclerView.ViewHolder(binding.root) {
 
     var item: CatResponse? = null
-    private set
+        private set
 
     init {
         binding.root.setOnClickListener {

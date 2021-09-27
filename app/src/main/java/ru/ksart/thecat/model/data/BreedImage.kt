@@ -7,12 +7,9 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 @JsonClass(generateAdapter = true)
-data class CatResponse(
+data class BreedImage(
     @Json(name = "id")
-    val id: String,
+    val id: String = "",
     @Json(name = "url")
-    val url: String,
-    @Json(name = "breeds")
-    val breeds: List<Breed> = emptyList(),
-//    var indexInResponse: Int = -1,
-):Parcelable
+    val url: String = "",
+) : Parcelable
