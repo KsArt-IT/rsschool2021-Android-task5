@@ -14,16 +14,17 @@ class CatLoadStateViewHolder(
 ) : RecyclerView.ViewHolder(binding.root) {
 
     init {
-        binding.retryButton.setOnClickListener { retry.invoke() }
+        binding.retryButton.also {
+            it.setOnClickListener { retry.invoke() }
+        }
     }
 
     fun bind(loadState: LoadState) {
         DebugHelper.log("------------------------------------------")
         DebugHelper.log("CatLoadStateViewHolder|bind")
         binding.run {
-            if (loadState is LoadState.Error) {
-                errorMessage.text = loadState.error.localizedMessage
-            }
+            errorMessage.text = if (loadState is LoadState.Error) loadState.error.localizedMessage
+            else ""
             progress.isVisible = loadState is LoadState.Loading
             retryButton.isVisible = loadState is LoadState.Error
             errorMessage.isVisible = loadState is LoadState.Error

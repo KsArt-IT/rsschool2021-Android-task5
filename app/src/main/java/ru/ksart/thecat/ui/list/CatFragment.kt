@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -29,8 +28,8 @@ class CatFragment : Fragment() {
 
     private val viewModel by viewModels<CatViewModel>()
 
-    private val catAdapter
-        get() = requireNotNull(views { catList.adapter as? CatAdapter }) { "Cat adapter is not initialized" }
+    private var _catAdapter: CatAdapter? = null
+    private val catAdapter get() = requireNotNull(_catAdapter) { "Cat adapter is not initialized" }
 
     private val breedAdapter
         get() = requireNotNull(views { breedList.adapter as? BreedAdapter }) { "Breed adapter is not initialized" }
@@ -63,6 +62,7 @@ class CatFragment : Fragment() {
 
     override fun onDestroyView() {
         binding = null
+        _catAdapter = null
         super.onDestroyView()
     }
 
@@ -74,6 +74,7 @@ class CatFragment : Fragment() {
                     catList.scrollToPosition(0)
                     viewModel.accept(action)
                 }
+                // тут нельзя это использовать
 //                setHasFixedSize(true)
                 isNestedScrollingEnabled = false
             }
@@ -91,16 +92,15 @@ class CatFragment : Fragment() {
 
     private fun initCatList() {
         DebugHelper.log("CatFragment|initCatList")
+        _catAdapter = CatAdapter(::showCatDetail)
         views {
-            val adapterInit = CatAdapter(::showCatDetail)
-            catList.adapter = CatAdapter(::showCatDetail)
-            adapterInit.withLoadStateHeaderAndFooter(
-                header = CatLoadStateAdapter { adapterInit.retry() },
-                footer = CatLoadStateAdapter { adapterInit.retry() }
+            catList.adapter = catAdapter.withLoadStateHeaderAndFooter(
+                header = CatLoadStateAdapter { catAdapter.retry() },
+                footer = CatLoadStateAdapter { catAdapter.retry() }
             )
             // задан в разметке
 //                layoutManager = LinearLayoutManager(requireContext().applicationContext)
-//            catList.setHasFixedSize(true)
+            catList.setHasFixedSize(true)
             catList.isNestedScrollingEnabled = false
             catList.addOnScrollListener(object : RecyclerView.OnScrollListener() {
                 override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
@@ -108,25 +108,18 @@ class CatFragment : Fragment() {
                     if (dy != 0) viewModel.scroll()
                 }
             })
-            viewModel.loadState(adapterInit.loadStateFlow)
         }
+        viewModel.loadState(catAdapter.loadStateFlow)
     }
 
     private fun bindCatList() {
         DebugHelper.log("CatFragment|bindCatList")
         lifecycleScope.launchWhenStarted {
-            viewModel.isEmptyList.collectLatest {
-                views {
-//                    emptyList.isVisible = catAdapter.itemCount == 0
-                    DebugHelper.log("CatFragment|showCatList empty=${views { emptyList.isVisible }} list=${catAdapter.itemCount}")
-                }
-            }
-        }
-        lifecycleScope.launchWhenStarted {
             viewModel.stateCatListData.collectLatest { (shouldScroll, pagingData) ->
                 DebugHelper.log("CatFragment|showCatList")
-                viewModel.changeList()
                 catAdapter.submitData(pagingData)
+                // выполниться только последнее действие
+                DebugHelper.log("CatFragment|showCatList list=${catAdapter.itemCount}")
                 // Scroll only after the data has been submitted to the adapter,
                 // and is a fresh search
                 if (shouldScroll) {

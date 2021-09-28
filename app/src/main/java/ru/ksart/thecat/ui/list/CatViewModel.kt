@@ -47,9 +47,6 @@ class CatViewModel @Inject constructor(
     private val _breedList = MutableStateFlow<List<Breed>>(emptyList())
     val breedList: StateFlow<List<Breed>> get() = _breedList.asStateFlow()
 
-    private val _isEmptyList = MutableStateFlow(true)
-    val isEmptyList: StateFlow<Boolean> get() = _isEmptyList.asStateFlow()
-
     init {
         searchBreeds()
 
@@ -174,10 +171,6 @@ class CatViewModel @Inject constructor(
 
     fun scroll() {
         accept(UiAction.Scroll(currentBreedQuery = state.value.breedQuery))
-    }
-
-    fun changeList() {
-        _isEmptyList.value = _isEmptyList.value.not()
     }
 
     private fun searchBreeds() {
