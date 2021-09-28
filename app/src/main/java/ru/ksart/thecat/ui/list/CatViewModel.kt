@@ -47,18 +47,23 @@ class CatViewModel @Inject constructor(
     private val _breedList = MutableStateFlow<List<Breed>>(emptyList())
     val breedList: StateFlow<List<Breed>> get() = _breedList.asStateFlow()
 
+    private val _breedSelected : MutableStateFlow<Pair<String, String>>
+    val breedSelected get() = _breedSelected.asStateFlow()
+
     init {
         searchBreeds()
 
         val initialQuery: String = ""
-        val lastQueryScrolled: String = ""
+        var lastQueryScrolled: String = ""
+
+        _breedSelected = MutableStateFlow(initialQuery to lastQueryScrolled)
 
         val actionStateFlow = MutableSharedFlow<UiAction>()
 
         val searches = actionStateFlow
             .filterIsInstance<UiAction.Search>()
             .onEach {
-                DebugHelper.log("CatViewModel|searches actionStateFlow in")
+                DebugHelper.log("CatViewModel|searches actionStateFlow search=${it.breedQuery}")
             }
             .distinctUntilChanged()
             .onStart {
@@ -68,8 +73,8 @@ class CatViewModel @Inject constructor(
 
         val queriesScrolled = actionStateFlow
             .filterIsInstance<UiAction.Scroll>()
-            .onEach {
-                DebugHelper.log("CatViewModel|queriesScrolled actionStateFlow")
+            .onEach { scroll ->
+                DebugHelper.log("CatViewModel|queriesScrolled actionStateFlow=${scroll.currentBreedQuery}")
             }
             .distinctUntilChanged()
             // This is shared to keep the flow "hot" while caching the last query scrolled,
@@ -95,6 +100,10 @@ class CatViewModel @Inject constructor(
                     // queriesScrolled
                     .distinctUntilChangedBy { it.second }
                     .map { (scroll, pagingData) ->
+                        if (search.breedQuery != lastQueryScrolled) {
+                            _breedSelected.value = search.breedQuery to lastQueryScrolled
+                            lastQueryScrolled = search.breedQuery
+                        }
                         UiState(
                             breedQuery = search.breedQuery,
                             pagingData = pagingData,
@@ -178,7 +187,7 @@ class CatViewModel @Inject constructor(
             _breedList.value = try {
                 DebugHelper.log("CatFragment|searchBreeds")
                 val list = repository.getBreedsList()
-                listOf(Breed(id = "", name = "All Cats")) + list
+                listOf(Breed(id = "", name = "All Cats", selected = true)) + list
 //                listOf(Breed(id = "", name = "All Cats"),Breed(id = "-", name = "-")) + list
             } catch (e: Exception) {
                 DebugHelper.log("CatFragment|searchBreeds error", e)

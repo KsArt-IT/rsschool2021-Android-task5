@@ -1,5 +1,6 @@
 package ru.ksart.thecat.ui.list
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -12,6 +13,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
+import okhttp3.internal.notifyAll
 import ru.ksart.thecat.R
 import ru.ksart.thecat.databinding.FragmentCatBinding
 import ru.ksart.thecat.model.data.Breed
@@ -70,10 +72,7 @@ class CatFragment : Fragment() {
         DebugHelper.log("CatFragment|initBreedList")
         views {
             breedList.run {
-                adapter = BreedAdapter { action ->
-                    catList.scrollToPosition(0)
-                    viewModel.accept(action)
-                }
+                adapter = BreedAdapter(viewModel::accept.invoke())
                 // тут нельзя это использовать
 //                setHasFixedSize(true)
                 isNestedScrollingEnabled = false
@@ -83,6 +82,25 @@ class CatFragment : Fragment() {
 
     private fun bindBreedList() {
         lifecycleScope.launchWhenStarted { viewModel.breedList.collectLatest(::showBreedList) }
+        lifecycleScope.launchWhenStarted {
+            viewModel.breedSelected.collectLatest { (newId, oldId) ->
+                views { catList.scrollToPosition(0) }
+                changeBreedSelected(newId, true)
+                changeBreedSelected(oldId, false)
+            }
+        }
+    }
+
+    private fun changeBreedSelected(id: String, checked: Boolean) {
+        breedAdapter.currentList.firstOrNull {
+            it.id == id
+        }?.apply {
+            selected = checked
+        }?.let {
+            breedAdapter.currentList.indexOf(it).also { index ->
+                DebugHelper.log("CatFragment|breed selected = $id id=$index")
+            }.let(breedAdapter::notifyItemChanged)
+        }
     }
 
     private fun showBreedList(list: List<Breed>) {

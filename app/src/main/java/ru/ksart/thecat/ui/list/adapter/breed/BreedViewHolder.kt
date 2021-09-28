@@ -21,18 +21,13 @@ class BreedViewHolder(
     init {
         binding.run {
             card.setOnClickListener {
-                item?.let { breed ->
+                item?.takeIf { it.selected.not() }?.let { breed ->
                     DebugHelper.log("BreedViewHolder|onClick id=${breed.id}")
-                    card.isChecked = card.isChecked.not()
+//                    breed.selected = true
+//                    card.isChecked = breed.selected
                     onClick(UiAction.Search(breedQuery = breed.id))
                 }
             }
-/*
-            binding.root.setOnClickListener {
-                DebugHelper.log("BreedViewHolder|onClick id=${item?.id}")
-                item?.let { onClick(UiAction.Search(breedQuery = it.id)) }
-            }
-*/
         }
     }
 
@@ -41,6 +36,7 @@ class BreedViewHolder(
 
         binding.run {
             nameBreed.text = item.name
+            card.isChecked = item.selected
         }
     }
 

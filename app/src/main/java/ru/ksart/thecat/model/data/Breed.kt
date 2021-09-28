@@ -8,6 +8,7 @@ import kotlinx.parcelize.Parcelize
 @Parcelize
 @JsonClass(generateAdapter = true)
 data class Breed(
+    var selected: Boolean = false,
     @Json(name = "id")
     val id: String,
     @Json(name = "name")
