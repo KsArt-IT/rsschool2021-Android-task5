@@ -4,22 +4,16 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import androidx.core.view.doOnPreDraw
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.FragmentNavigatorExtras
+import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
-import androidx.paging.PagingData
-import androidx.paging.filter
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.withContext
+import ru.ksart.thecat.R
 import ru.ksart.thecat.databinding.FragmentCatBinding
 import ru.ksart.thecat.model.data.Breed
 import ru.ksart.thecat.model.data.CatResponse
@@ -36,11 +30,20 @@ class CatFragment : Fragment() {
     private val viewModel by viewModels<CatViewModel>()
 
     private val catAdapter
-        //        get() = views { catList.adapter as? CatAdapter }
         get() = requireNotNull(views { catList.adapter as? CatAdapter }) { "Cat adapter is not initialized" }
 
     private val breedAdapter
         get() = requireNotNull(views { breedList.adapter as? BreedAdapter }) { "Breed adapter is not initialized" }
+
+    // flip animation+Navigation
+    private val navOptions by lazy {
+        NavOptions.Builder()
+            .setEnterAnim(R.animator.card_flip_right_in)
+            .setExitAnim(R.animator.card_flip_right_out)
+            .setPopEnterAnim(R.animator.card_flip_left_in)
+            .setPopExitAnim(R.animator.card_flip_left_out)
+            .build()
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -56,10 +59,6 @@ class CatFragment : Fragment() {
 
         initBreedList()
         bindBreedList()
-
-        // для анимированного перехода
-        postponeEnterTransition()
-        (view.parent as? ViewGroup)?.doOnPreDraw { startPostponedEnterTransition() }
     }
 
     override fun onDestroyView() {
@@ -75,6 +74,8 @@ class CatFragment : Fragment() {
                     catList.scrollToPosition(0)
                     viewModel.accept(action)
                 }
+//                setHasFixedSize(true)
+                isNestedScrollingEnabled = false
             }
         }
     }
@@ -99,7 +100,7 @@ class CatFragment : Fragment() {
             )
             // задан в разметке
 //                layoutManager = LinearLayoutManager(requireContext().applicationContext)
-            catList.setHasFixedSize(true)
+//            catList.setHasFixedSize(true)
             catList.isNestedScrollingEnabled = false
             catList.addOnScrollListener(object : RecyclerView.OnScrollListener() {
                 override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
@@ -136,13 +137,10 @@ class CatFragment : Fragment() {
         }
     }
 
-    private fun showCatDetail(item: CatResponse, imageView: ImageView) {
+    private fun showCatDetail(item: CatResponse) {
         DebugHelper.log("CatFragment|showCatDetail")
-        val extras = FragmentNavigatorExtras(
-            imageView to item.id
-        )
         val action = CatFragmentDirections.actionCatFragmentToCatDetailFragment(item)
-        findNavController().navigate(action, extras)
+        findNavController().navigate(action, navOptions)
     }
 
     private fun <T> views(block: FragmentCatBinding.() -> T): T? = binding?.block()

@@ -6,7 +6,6 @@ import androidx.paging.CombinedLoadStates
 import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import androidx.paging.filter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -35,7 +34,7 @@ import javax.inject.Inject
 class CatViewModel @Inject constructor(
     private val repository: CatRepository,
 //    private val savedStateHandle: SavedStateHandle
-): ViewModel() {
+) : ViewModel() {
 
     private val state: StateFlow<UiState>
 
@@ -131,7 +130,8 @@ class CatViewModel @Inject constructor(
         stateCatListData = combine(
             shouldScrollToTop,
             statePagingData,
-            ::Pair)
+            ::Pair
+        )
             .onEach {
                 DebugHelper.log("CatViewModel|stateList in")
             }

@@ -39,11 +39,6 @@ class CatDetailFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         createMediaLauncher = createMediaLauncher()
-        // установим свою анимацию перехода
-        sharedElementEnterTransition =
-            TransitionInflater.from(context).inflateTransition(R.transition.movie)
-        // отложить переход входа
-        postponeEnterTransition()
     }
 
     override fun onCreateView(
@@ -66,33 +61,22 @@ class CatDetailFragment : Fragment() {
 
     private fun showDetail() {
         binding.run {
-            imageDetail.apply { transitionName = item.id }
-                .load(item.url) {
-                    listener(
-                        // pass two arguments
-                        onSuccess = { _, _ ->
-                            startPostponedEnterTransition()
-                        },
-                        onError = { request: ImageRequest, throwable: Throwable ->
-                            startPostponedEnterTransition()
-//                            request.error
-                        }
-                    )
-                    build()
-                }
             if (item.breeds.isNotEmpty()) {
                 breed.text = getString(R.string.breed_title, item.breeds[0].name)
                 description.text = item.breeds[0].description
             }
+            imageDetail.load(item.url)
         }
     }
 
     private fun initListener() {
-        binding.save.setOnClickListener {
-            viewModel.saveMedia(item.url)
-        }
-        binding.saveAs.setOnClickListener {
-            viewModel.saveAsMedia(item.url)
+        binding.run {
+            save.setOnClickListener {
+                viewModel.saveMedia(item.url)
+            }
+            saveAs.setOnClickListener {
+                viewModel.saveAsMedia(item.url)
+            }
         }
     }
 
@@ -110,14 +94,14 @@ class CatDetailFragment : Fragment() {
         }
     }
 
+    private fun createFile(name: String) {
+        createMediaLauncher.launch(name)
+    }
+
     private fun createMediaLauncher() = registerForActivityResult(
         ActivityResultContracts.CreateDocument()
     ) { uri ->
         viewModel.saveAsMediaTo(uri)
-    }
-
-    private fun createFile(name: String) {
-        createMediaLauncher.launch(name)
     }
 
     private fun showLoading(isLoading: Boolean) {

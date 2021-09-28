@@ -11,7 +11,7 @@ import ru.ksart.thecat.model.data.CatResponse
 
 class CatViewHolder(
     private val binding: ItemCatBinding,
-    onClick: (CatResponse, ImageView) -> Unit
+    onClick: (CatResponse) -> Unit
 ) : RecyclerView.ViewHolder(binding.root) {
 
     var item: CatResponse? = null
@@ -19,7 +19,7 @@ class CatViewHolder(
 
     init {
         binding.root.setOnClickListener {
-            item?.let { onClick(it, binding.image) }
+            item?.let { onClick(it) }
         }
     }
 
@@ -32,7 +32,6 @@ class CatViewHolder(
                     crossfade(true)
                     placeholder(R.drawable.ic_download)
                     error(R.drawable.ic_error)
-//                    transformations(CircleCropTransformation())
                     build()
                 }
         }
@@ -41,7 +40,7 @@ class CatViewHolder(
     companion object {
         fun create(
             parent: ViewGroup,
-            onClick: (CatResponse, ImageView) -> Unit
+            onClick: (CatResponse) -> Unit
         ) = ItemCatBinding.inflate(
             LayoutInflater.from(parent.context),
             parent,

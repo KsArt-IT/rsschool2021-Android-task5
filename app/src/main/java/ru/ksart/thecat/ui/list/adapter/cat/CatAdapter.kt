@@ -6,7 +6,7 @@ import androidx.paging.PagingDataAdapter
 import ru.ksart.thecat.model.data.CatResponse
 
 class CatAdapter(
-    private val onClick: (CatResponse, ImageView) -> Unit
+    private val onClick: (CatResponse) -> Unit
 ): PagingDataAdapter<CatResponse, CatViewHolder>(CatDiffCallback()) {
 
     override fun onBindViewHolder(holder: CatViewHolder, position: Int) {
