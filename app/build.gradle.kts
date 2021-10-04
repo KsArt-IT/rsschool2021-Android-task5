@@ -78,7 +78,6 @@ dependencies {
     // Dagger Hilt
     implementation("com.google.dagger:hilt-android:2.39.1")
     kapt("com.google.dagger:hilt-compiler:2.39.1")
-//    kapt("com.google.dagger:hilt-android-compiler:2.39.1")
     // Paging3
     implementation("androidx.paging:paging-runtime-ktx:3.0.1")
     // RoomDao

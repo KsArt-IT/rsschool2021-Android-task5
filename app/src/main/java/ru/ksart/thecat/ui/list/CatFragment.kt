@@ -99,7 +99,6 @@ class CatFragment : Fragment() {
                         if (state.hasNotScrolledForCurrentSearch) {
                             // прокручиваем
 //                            views { catList.scrollToPosition(0) }
-//                            viewModel.scroll()
                             // меняем поиск
                             selectBreed(state.breedQuery, state.lastBreedQueryScrolled)
                         }

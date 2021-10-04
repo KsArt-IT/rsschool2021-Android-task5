@@ -3,6 +3,10 @@
     package="ru.ksart.thecat">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
 
     <application
         android:name=".App"
@@ -14,7 +18,8 @@
         android:theme="@style/Theme.TheCat">
         <activity
             android:name=".ui.main.MainActivity"
-            android:exported="true">
+            android:exported="true"
+            android:theme="@style/Theme.TheCat.SplashTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -24,4 +29,3 @@
     </application>
 
 </manifest>
-<!--    android:theme="@style/Theme.TheCat.SplashTheme"-->
