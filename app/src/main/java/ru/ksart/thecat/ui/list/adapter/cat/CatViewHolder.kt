@@ -2,7 +2,6 @@ package ru.ksart.thecat.ui.list.adapter.cat
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import ru.ksart.thecat.R
@@ -27,13 +26,12 @@ class CatViewHolder(
         this.item = item
 
         binding.run {
-            image.apply { transitionName = item.id }
-                .load(item.url) {
-                    crossfade(true)
-                    placeholder(R.drawable.ic_download)
-                    error(R.drawable.ic_error)
-                    build()
-                }
+            image.load(item.url) {
+                crossfade(true)
+                placeholder(R.drawable.ic_download)
+                error(R.drawable.ic_error)
+                build()
+            }
         }
     }
 

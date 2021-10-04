@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="cardview_margin">16dp</dimen>
+    <dimen name="cardview_margin">8dp</dimen>
     <dimen name="row_item_margin_vertical">12dp</dimen>
     <dimen name="image_padding">16dp</dimen>
     <dimen name="small_padding">8dp</dimen>

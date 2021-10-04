@@ -24,4 +24,3 @@ data class Breed(
     @Json(name = "image")
     val breedImage: BreedImage? = null,
 ) : Parcelable
-//https://api.thecatapi.com/v1/breeds

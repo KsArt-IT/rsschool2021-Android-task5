@@ -2,14 +2,11 @@ package ru.ksart.thecat.model.repositories
 
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.LoadType
-import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
 import retrofit2.HttpException
-import ru.ksart.thecat.model.data.Cat
 import ru.ksart.thecat.model.data.CatResponse
 import ru.ksart.thecat.model.db.CatDao
-import ru.ksart.thecat.model.db.CatDb
 import ru.ksart.thecat.model.networking.CatApi
 import ru.ksart.thecat.utils.DebugHelper
 import java.io.IOException
@@ -69,10 +66,10 @@ class CatRemoteMediator @Inject constructor(
             ).data
 */
 
-        val response = catApi.searchCats(
-            limit = 10,
-            page = 0,
-        )
+            val response = catApi.searchCats(
+                limit = 10,
+                page = 0,
+            )
             val items = response.takeIf { it.isSuccessful }?.body() ?: emptyList()
             DebugHelper.log("CatRemoteMediator|load lise=${items.size}")
 
@@ -94,4 +91,3 @@ class CatRemoteMediator @Inject constructor(
         }
     }
 }
-

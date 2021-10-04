@@ -13,6 +13,7 @@ import retrofit2.create
 import ru.ksart.thecat.model.networking.ApiKeyInterceptor
 import ru.ksart.thecat.model.networking.CatApi
 import ru.ksart.thecat.model.networking.DownloadApi
+import java.util.concurrent.TimeUnit
 import javax.inject.Qualifier
 import javax.inject.Singleton
 
@@ -39,6 +40,10 @@ class NetworkModule {
         return OkHttpClient.Builder()
             .addNetworkInterceptor(loggingInterceptor)
             .addNetworkInterceptor(apiKeyInterceptor)
+            .connectTimeout(10, TimeUnit.SECONDS)
+            .readTimeout(10, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
+            .retryOnConnectionFailure(false) // not necessary but useful!
             .build()
     }
 
@@ -60,7 +65,7 @@ class NetworkModule {
     @Singleton
     fun provideDownloadApi(): DownloadApi {
         val retrofit = Retrofit.Builder()
-            .baseUrl("https://google.com")
+            .baseUrl("https://google.com/")
             .build()
         return retrofit.create()
     }

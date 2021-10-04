@@ -3,7 +3,7 @@ buildscript {
     ext {
         nav_version = '2.3.5'
         hilt_version = '2.38.1'
-        lifecycle_version = '2.3.1'
+        lifecycle_version = '2.4.0-rc01'
         coroutines_version = '1.5.2'
         retrofit_version = '2.9.0'
         moshi_version = '1.12.0'
@@ -20,10 +20,13 @@ buildscript {
 
         classpath "com.google.dagger:hilt-android-gradle-plugin:$hilt_version"
         classpath "androidx.navigation:navigation-safe-args-gradle-plugin:$nav_version"
+        classpath "io.gitlab.arturbosch.detekt:detekt-gradle-plugin:1.18.1"
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
 }
+
+apply from: "$projectDir/detekt.gradle"
 
 task clean(type: Delete) {
     delete rootProject.buildDir

@@ -3,7 +3,7 @@ package ru.ksart.thecat.model.networking
 import okhttp3.Interceptor
 import okhttp3.Response
 
-class ApiKeyInterceptor: Interceptor {
+class ApiKeyInterceptor : Interceptor {
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val originalRequest = chain.request()
@@ -25,4 +25,4 @@ class ApiKeyInterceptor: Interceptor {
         const val API_KEY = "73dd02b4-7330-4822-8cc6-0e3fb9cf860d"
     }
 }
-//https://api.thecatapi.com/v1/images?api_key=73dd02b4-7330-4822-8cc6-0e3fb9cf860d&limit=100&page=1&order=Rand
+// https://api.thecatapi.com/v1/images?api_key=73dd02b4-7330-4822-8cc6-0e3fb9cf860d&limit=100&page=1&order=Rand

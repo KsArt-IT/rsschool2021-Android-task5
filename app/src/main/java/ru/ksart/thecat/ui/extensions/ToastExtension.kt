@@ -1,9 +1,9 @@
 package ru.ksart.thecat.ui.extensions
 
 import android.app.Activity
-import androidx.fragment.app.Fragment
 import android.widget.Toast
 import androidx.annotation.StringRes
+import androidx.fragment.app.Fragment
 
 // показать тост из ресурсов
 fun Activity.toast(@StringRes stringId: Int) {

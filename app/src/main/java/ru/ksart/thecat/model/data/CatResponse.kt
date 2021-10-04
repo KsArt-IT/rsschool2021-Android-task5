@@ -15,4 +15,4 @@ data class CatResponse(
     @Json(name = "breeds")
     val breeds: List<Breed> = emptyList(),
 //    var indexInResponse: Int = -1,
-):Parcelable
+) : Parcelable

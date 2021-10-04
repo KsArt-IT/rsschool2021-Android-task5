@@ -3,10 +3,8 @@ package ru.ksart.thecat.ui.list.adapter.breed
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import coil.load
 import ru.ksart.thecat.databinding.ItemBreedBinding
 import ru.ksart.thecat.model.data.Breed
-import ru.ksart.thecat.model.data.CatResponse
 import ru.ksart.thecat.ui.list.UiAction
 import ru.ksart.thecat.utils.DebugHelper
 
@@ -23,8 +21,7 @@ class BreedViewHolder(
             card.setOnClickListener {
                 item?.takeIf { it.selected.not() }?.let { breed ->
                     DebugHelper.log("BreedViewHolder|onClick id=${breed.id}")
-//                    breed.selected = true
-//                    card.isChecked = breed.selected
+                    breed.selected = true
                     onClick(UiAction.Search(breedQuery = breed.id))
                 }
             }

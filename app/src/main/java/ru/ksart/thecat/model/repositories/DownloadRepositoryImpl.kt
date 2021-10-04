@@ -2,9 +2,12 @@ package ru.ksart.thecat.model.repositories
 
 import android.content.ContentValues
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
+import android.os.Environment
 import android.provider.MediaStore
 import android.webkit.MimeTypeMap
+import androidx.core.net.toUri
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -54,6 +57,65 @@ class DownloadRepositoryImpl @Inject constructor(
                 deleteMediaUri(uri)
                 throw e
             }
+        }
+    }
+
+    override suspend fun getIntentToShareFile(url: String): Intent = withContext(Dispatchers.IO) {
+        DebugHelper.log("PotatoRepositoryImpl|getIntentToShareFile")
+        require(url.isNotBlank()) { "Error url is blank" }
+        // запишем в кешь
+//        val uri = getUriBySaveToCacheDir(url)
+
+        // проверить тип файла
+        checkMimeTypeIsImage(url)
+        // получим имя из url
+        val name = File(url).name
+        // создаем файл на устройстве для записи
+        val uri = saveMediaDetails(name)
+        try {
+            // загружаем файл по ссылке в созданный файл на устройстве
+            downloadMedia(url, uri)
+            // после загрузки помечаем файл как видимый
+            makeMediaVisible(uri)
+
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                putExtra(Intent.EXTRA_STREAM, uri)
+                type = context.contentResolver.getType(uri)
+                flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+            }
+
+            DebugHelper.log("PotatoRepositoryImpl|getIntentToShareFile Intent")
+            Intent.createChooser(intent, null)
+        } catch (e: Exception) {
+            // если ошибка удалить, созданный на устройстве файл
+            deleteMediaUri(uri)
+            throw e
+        }
+    }
+
+    private suspend fun getUriBySaveToCacheDir(url: String): Uri {
+        DebugHelper.log("PotatoRepositoryImpl|getUriBySaveToCacheDir")
+        require(url.isNotBlank()) { "Url is blank" }
+        var file: File? = null
+        return try {
+            val folder =
+                if (Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED) {
+                    context.externalCacheDir
+                } else {
+                    context.cacheDir
+                }
+            val name = File(url).name
+            file = File(folder, name)
+            DebugHelper.log("PotatoRepositoryImpl|getUriBySaveToCacheDir file=$file")
+            downloadFile(url, file)
+            file.toUri()
+        } catch (e: Exception) {
+            DebugHelper.log("PotatoRepositoryImpl|getUriBySaveToCacheDir error: ${e.localizedMessage}")
+            try {
+                file?.takeIf { it.exists() }?.delete()
+            } catch (notUse: Exception) {
+            }
+            throw e
         }
     }
 
@@ -110,6 +172,17 @@ class DownloadRepositoryImpl @Inject constructor(
         }
     }
 
+    private suspend fun downloadFile(url: String, file: File) {
+        DebugHelper.log("PotatoRepositoryImpl|downloadFile file=$url")
+        file.outputStream().use { fileOutputStream ->
+            downloadApi.getFile(url)
+                .byteStream()
+                .use { inputStream ->
+                    inputStream.copyTo(fileOutputStream)
+                }
+        }
+    }
+
     // установим видимость нашего файла после загрузки
     private fun makeMediaVisible(mediaUri: Uri) {
         if (isAndroidQ.not()) return
@@ -127,5 +200,4 @@ class DownloadRepositoryImpl @Inject constructor(
             context.contentResolver.delete(uri, null, null)
         }
     }
-
 }

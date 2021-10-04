@@ -8,12 +8,12 @@ plugins {
 }
 
 android {
-    compileSdk 30
+    compileSdk 31
 
     defaultConfig {
         applicationId "ru.ksart.thecat"
         minSdk 21
-        targetSdk 30
+        targetSdk 31
         versionCode 1
         versionName "1.0"
 
@@ -84,6 +84,9 @@ dependencies {
     implementation "androidx.recyclerview:recyclerview:1.2.1"
     // Coil
     implementation 'io.coil-kt:coil:1.3.2'
+
+    // Timber
+    implementation 'com.jakewharton.timber:timber:4.7.1'
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'

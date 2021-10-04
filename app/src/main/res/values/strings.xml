@@ -7,6 +7,11 @@
     <string name="save_as_button_text">Save as …</string>
     <string name="no_link_to_media_file">no link to media file</string>
     <string name="file_uploaded_to_gallery">file uploaded to gallery</string>
+    <string name="file_uploaded">file uploaded</string>
     <string name="file_upload_error">file upload error</string>
+    <string name="no_name_cat">Nameless cat</string>
+    <string name="the_cat_label">The Cat</string>
+    <string name="cat_detail_label">About the cat</string>
+    <string name="share_intent_error">Error creating file for share</string>
 
 </resources>

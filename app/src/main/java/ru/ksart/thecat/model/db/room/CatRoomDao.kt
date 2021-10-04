@@ -10,7 +10,7 @@ import ru.ksart.thecat.model.db.CatContract
 import ru.ksart.thecat.model.db.CatDao
 
 @Dao
-abstract class CatRoomDao: CatDao {
+abstract class CatRoomDao : CatDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract override suspend fun insertAll(cats: List<Cat>)
 

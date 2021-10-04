@@ -12,4 +12,3 @@ class BreedDiffCallback : DiffUtil.ItemCallback<Breed>() {
         return oldItem == newItem
     }
 }
-

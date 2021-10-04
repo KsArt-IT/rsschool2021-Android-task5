@@ -8,7 +8,7 @@
     <fragment
         android:id="@+id/catFragment"
         android:name="ru.ksart.thecat.ui.list.CatFragment"
-        android:label="CatFragment"
+        android:label="@string/the_cat_label"
         tools:layout="@layout/fragment_cat">
         <action
             android:id="@+id/action_catFragment_to_catDetailFragment"
@@ -17,7 +17,7 @@
     <fragment
         android:id="@+id/catDetailFragment"
         android:name="ru.ksart.thecat.ui.detail.CatDetailFragment"
-        android:label="CatDetailFragment"
+        android:label="@string/cat_detail_label"
         tools:layout="@layout/fragment_cat_detail">
         <argument
             android:name="item"
