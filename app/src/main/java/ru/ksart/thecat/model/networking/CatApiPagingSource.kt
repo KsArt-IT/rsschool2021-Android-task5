@@ -4,7 +4,7 @@ import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import retrofit2.HttpException
 import ru.ksart.thecat.model.data.CatResponse
-import ru.ksart.thecat.utils.DebugHelper
+import timber.log.Timber
 import java.io.IOException
 
 class CatApiPagingSource(
@@ -22,18 +22,18 @@ class CatApiPagingSource(
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, CatResponse> {
         val position = params.key ?: CatApi.CAT_STARTING_PAGE_INDEX
         return try {
-            DebugHelper.log("CatApiPagingSource|load catApi.searchCats breed=$query")
+            Timber.d("load catApi.searchCats breed=$query")
             val response =
                 catApi.searchCats(page = position, limit = params.loadSize, breedId = query)
             if (response.isSuccessful) {
                 val catResponse = response.body() ?: emptyList()
-                DebugHelper.log("CatApiPagingSource|load list=${catResponse.size}")
+                Timber.d("load list=${catResponse.size}")
                 val nextKey = if (catResponse.isEmpty()) {
                     null
                 } else {
                     position + (params.loadSize / CatApi.NETWORK_PAGE_SIZE)
                 }
-                DebugHelper.log("CatApiPagingSource|load nextKey=$nextKey")
+                Timber.d("load nextKey=$nextKey")
                 LoadResult.Page(
                     data = catResponse,
                     prevKey = if (position == CatApi.CAT_STARTING_PAGE_INDEX) null else position - 1,
@@ -41,14 +41,14 @@ class CatApiPagingSource(
                 )
             } else {
                 val e = Exception("Unknown error")
-                DebugHelper.log("CatApiPagingSource|load error(Unknown error): ", e)
+                Timber.e(e)
                 LoadResult.Error(e)
             }
         } catch (e: IOException) {
-            DebugHelper.log("CatApiPagingSource|load error(IOException): ", e)
+            Timber.e(e, "IOException")
             LoadResult.Error(e)
         } catch (e: HttpException) {
-            DebugHelper.log("CatApiPagingSource|load error(HttpException): ", e)
+            Timber.e(e, "HttpException")
             LoadResult.Error(e)
         }
     }

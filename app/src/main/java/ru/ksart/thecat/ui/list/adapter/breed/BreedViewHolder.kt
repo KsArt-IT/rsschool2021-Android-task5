@@ -6,7 +6,7 @@ import androidx.recyclerview.widget.RecyclerView
 import ru.ksart.thecat.databinding.ItemBreedBinding
 import ru.ksart.thecat.model.data.Breed
 import ru.ksart.thecat.ui.list.UiAction
-import ru.ksart.thecat.utils.DebugHelper
+import timber.log.Timber
 
 class BreedViewHolder(
     private val binding: ItemBreedBinding,
@@ -20,7 +20,7 @@ class BreedViewHolder(
         binding.run {
             card.setOnClickListener {
                 item?.takeIf { it.selected.not() }?.let { breed ->
-                    DebugHelper.log("BreedViewHolder|onClick id=${breed.id}")
+                    Timber.d("onClick id=${breed.id}")
                     breed.selected = true
                     onClick(UiAction.Search(breedQuery = breed.id))
                 }

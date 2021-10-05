@@ -8,7 +8,7 @@ import retrofit2.HttpException
 import ru.ksart.thecat.model.data.CatResponse
 import ru.ksart.thecat.model.db.CatDao
 import ru.ksart.thecat.model.networking.CatApi
-import ru.ksart.thecat.utils.DebugHelper
+import timber.log.Timber
 import java.io.IOException
 import javax.inject.Inject
 
@@ -53,7 +53,7 @@ class CatRemoteMediator @Inject constructor(
             }
 */
         return try {
-            DebugHelper.log("CatRemoteMediator|load")
+            Timber.d("load")
 /*
             val data = redditApi.getTop(
                 subreddit = subredditName,
@@ -71,7 +71,7 @@ class CatRemoteMediator @Inject constructor(
                 page = 0,
             )
             val items = response.takeIf { it.isSuccessful }?.body() ?: emptyList()
-            DebugHelper.log("CatRemoteMediator|load lise=${items.size}")
+            Timber.d("load list=${items.size}")
 
 /*
                 if (loadType == LoadType.REFRESH) {
@@ -83,10 +83,10 @@ class CatRemoteMediator @Inject constructor(
 
             MediatorResult.Success(endOfPaginationReached = items.isEmpty())
         } catch (e: IOException) {
-            DebugHelper.log("CatRemoteMediator|load IOException: ", e)
+            Timber.e(e, "IOException")
             MediatorResult.Error(e)
         } catch (e: HttpException) {
-            DebugHelper.log("CatRemoteMediator|load HttpException: ", e)
+            Timber.e(e, "HttpException")
             MediatorResult.Error(e)
         }
     }

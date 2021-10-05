@@ -25,7 +25,6 @@ import ru.ksart.thecat.model.data.CatResponse
 import ru.ksart.thecat.ui.list.adapter.breed.BreedAdapter
 import ru.ksart.thecat.ui.list.adapter.cat.CatAdapter
 import ru.ksart.thecat.ui.list.adapter.cat.CatLoadStateAdapter
-import ru.ksart.thecat.utils.DebugHelper
 import timber.log.Timber
 
 @AndroidEntryPoint
@@ -76,7 +75,7 @@ class CatFragment : Fragment() {
     }
 
     private fun initBreedList() {
-        DebugHelper.log("CatFragment|initBreedList")
+        Timber.d("breed list init")
         views {
             breedList.run {
                 adapter = BreedAdapter(viewModel::accept.invoke())
@@ -96,13 +95,13 @@ class CatFragment : Fragment() {
                 }
                 launch {
                     viewModel.breedState.collectLatest { state ->
-                        Timber.d("state.collectLatest")
+                        Timber.d("breed state")
                         if (state.breedQuery != state.lastBreedQuery) {
-                            Timber.d("selectBreed ${state.breedQuery} != ${state.lastBreedQuery}")
+                            Timber.d("breed state select=${state.breedQuery} old=${state.lastBreedQuery}")
                             selectBreed(state.breedQuery, state.lastBreedQuery)
                         }
                         if (state.hasNotScrolledForCurrentSearch) {
-                            Timber.d("catList.scrollToTop")
+                            Timber.d("breed state - cat list scroll to top")
                             // прокручиваем
                             views { catList.scrollToPosition(0) }
                         }
@@ -113,7 +112,7 @@ class CatFragment : Fragment() {
     }
 
     private fun selectBreed(newId: String, oldId: String) {
-        Timber.d("catList.scrollToTop")
+        Timber.d("breed state select=$newId old=$oldId")
         changeBreedSelected(newId, true)
         changeBreedSelected(oldId, false)
     }
@@ -125,18 +124,18 @@ class CatFragment : Fragment() {
             selected = checked
         }?.let {
             breedAdapter.currentList.indexOf(it).also { index ->
-                DebugHelper.log("CatFragment|breed selected = $id id=$index")
+                Timber.d("breed selected = $id id=$index")
             }.let(breedAdapter::notifyItemChanged)
         }
     }
 
     private fun showBreedList(list: List<Breed>) {
-        DebugHelper.log("CatFragment|showBreedList list=${list.size}")
+        Timber.d("breed list size=${list.size}")
         breedAdapter.submitList(list)
     }
 
     private fun initCatList() {
-        DebugHelper.log("CatFragment|initCatList")
+        Timber.d("cat list init")
         _catAdapter = CatAdapter(::showCatDetail)
         views {
             catList.run {
@@ -180,7 +179,7 @@ class CatFragment : Fragment() {
                             views {
                                 emptyListTextView.isVisible = catAdapter.itemCount == 0
                                 Timber.d("submitData list visible=${emptyListTextView.isVisible}")
-                                Timber.d("submitData list =${catAdapter.itemCount}")
+                                Timber.d("submitData list size=${catAdapter.itemCount}")
                             }
                         }
                         catAdapter.submitData(pagingData)
@@ -197,7 +196,7 @@ class CatFragment : Fragment() {
     }
 
     private fun showCatDetail(item: CatResponse) {
-        DebugHelper.log("CatFragment|showCatDetail")
+        Timber.d(item.id)
         val action = CatFragmentDirections.actionCatFragmentToCatDetailFragment(item)
         // переход с анимацией
         findNavController().navigate(action, navOptions)

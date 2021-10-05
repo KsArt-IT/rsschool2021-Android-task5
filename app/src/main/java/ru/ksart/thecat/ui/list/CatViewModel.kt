@@ -28,7 +28,7 @@ import kotlinx.coroutines.launch
 import ru.ksart.thecat.model.data.Breed
 import ru.ksart.thecat.model.data.CatResponse
 import ru.ksart.thecat.model.repositories.CatRepository
-import ru.ksart.thecat.utils.DebugHelper
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -63,7 +63,7 @@ class CatViewModel @Inject constructor(
 
         accept = { action ->
             viewModelScope.launch {
-                DebugHelper.log("CatViewModel|accept action=$action")
+                Timber.d("accept action=$action")
                 actionStateFlow.emit(action)
             }
         }
@@ -71,7 +71,7 @@ class CatViewModel @Inject constructor(
         val searches = actionStateFlow
             .filterIsInstance<UiAction.Search>()
             .onEach {
-                DebugHelper.log("CatViewModel|searches actionStateFlow search=${it.breedQuery}")
+                Timber.d("searches actionStateFlow search=${it.breedQuery}")
             }
             .distinctUntilChanged()
 /*
@@ -85,8 +85,7 @@ class CatViewModel @Inject constructor(
             .filterIsInstance<UiAction.Scroll>()
             .distinctUntilChanged()
             .onEach { scroll ->
-                DebugHelper.log("CatViewModel|Scroll queriesScrolled actionStateFlow=${scroll.currentBreedQuery}")
-//                lastQueryScrolled = scroll.currentBreedQuery
+                Timber.d("queriesScrolled actionStateFlow=${scroll.currentBreedQuery}")
             }
             // This is shared to keep the flow "hot" while caching the last query scrolled,
             // otherwise each flatMapLatest invocation would lose the last query scrolled,
@@ -96,18 +95,16 @@ class CatViewModel @Inject constructor(
                 replay = 1
             )
 //            .onStart { emit(UiAction.Scroll(currentBreedQuery = lastQueryScrolled)) }
+
         state = searches
             .flatMapLatest { search ->
                 combine(
-                    queriesScrolled
-                        .onEach {
-                            DebugHelper.log("CatViewModel|searches Scroll queriesScrolled=${it.currentBreedQuery}")
-                        },
+                    queriesScrolled,
                     searchCats(query = search.breedQuery),
                     ::Pair
                 )
                     .onEach {
-                        DebugHelper.log("CatViewModel|searches state")
+                        Timber.d("state in")
                     }
                     // Each unique PagingData should be submitted once, take the latest from
                     // queriesScrolled
@@ -122,6 +119,7 @@ class CatViewModel @Inject constructor(
                         )
                     }
                     .onEach {
+                        Timber.d("state new=${it.breedQuery} old=${it.lastBreedQuery}")
                         lastQuery = it.breedQuery
                         _breedStateChannel.send(it)
                     }
@@ -133,9 +131,6 @@ class CatViewModel @Inject constructor(
             )
 
         val statePagingData = state
-            .onEach {
-                DebugHelper.log("CatViewModel|pagingData")
-            }
             .map { it.pagingData }
             .distinctUntilChanged()
 
@@ -145,55 +140,48 @@ class CatViewModel @Inject constructor(
             ::Pair
         )
             .onEach {
-                DebugHelper.log("CatViewModel|stateList in")
+                Timber.d("in")
             }
             // Each unique PagingData should be submitted once, take the latest from
             // shouldScrollToTop
             .distinctUntilChangedBy { it.second }
             .onEach {
-                DebugHelper.log("CatViewModel|stateList out")
+                Timber.d("out")
             }
-
     }
 
     fun loadState(notLoading: Flow<CombinedLoadStates>) {
         combine(
             notLoading // Only emit when REFRESH LoadState for RemoteMediator changes.
-                .onEach {
-                    DebugHelper.log("CatViewModel|notLoading")
-                }
                 .distinctUntilChangedBy { it.refresh }
                 // Only react to cases where Remote REFRESH completes i.e., NotLoading.
                 .map { it.refresh is LoadState.NotLoading },
 
             state
-                .onEach {
-                    DebugHelper.log("CatViewModel|hasNotScrolledForCurrentSearch")
-                }
                 .map { it.hasNotScrolledForCurrentSearch }
                 .distinctUntilChanged(),
 
             Boolean::and
         )
             .onEach {
-                DebugHelper.log("CatViewModel|shouldScrollToTop in")
+                Timber.d("shouldScrollToTop in")
             }
             .distinctUntilChanged()
             .onEach {
-                DebugHelper.log("CatViewModel|shouldScrollToTop =$it")
+                Timber.d("shouldScrollToTop=$it")
                 shouldScrollToTop.value = it
             }
     }
 
     fun scroll() {
-        DebugHelper.log("CatViewModel|Scroll breedQuery=${state.value.breedQuery}")
+        Timber.d("breedQuery=${state.value.breedQuery}")
         accept(UiAction.Scroll(currentBreedQuery = state.value.breedQuery))
     }
 
     private fun searchBreeds() {
         viewModelScope.launch {
             _breedList.value = try {
-                DebugHelper.log("CatViewModel|searchBreeds")
+                Timber.d("in")
                 val list = repository.getBreedsList()
                 // загрузим список по породе или весь без породы
                 lastQuery = list.firstOrNull {
@@ -208,7 +196,7 @@ class CatViewModel @Inject constructor(
                 listOf(Breed(id = "", name = "All Cats", selected = true)) + list
 //                listOf(Breed(id = "", name = "All Cats"),Breed(id = "-", name = "-")) + list
             } catch (e: Exception) {
-                DebugHelper.log("CatViewModel|searchBreeds error", e)
+                Timber.e(e)
                 emptyList()
             }
         }
@@ -217,7 +205,7 @@ class CatViewModel @Inject constructor(
     private fun searchCats(query: String): Flow<PagingData<CatResponse>> =
         repository.getSearchResultStream(query)
             .onEach {
-                DebugHelper.log("CatViewModel|searchCats query=$query")
+                Timber.d("query=$query")
             }
             .cachedIn(viewModelScope)
 }

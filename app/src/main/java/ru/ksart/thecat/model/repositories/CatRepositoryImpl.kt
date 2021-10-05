@@ -12,7 +12,7 @@ import ru.ksart.thecat.model.data.CatResponse
 import ru.ksart.thecat.model.db.CatDao
 import ru.ksart.thecat.model.networking.CatApi
 import ru.ksart.thecat.model.networking.CatApiPagingSource
-import ru.ksart.thecat.utils.DebugHelper
+import timber.log.Timber
 import javax.inject.Inject
 
 class CatRepositoryImpl @Inject constructor(
@@ -26,7 +26,7 @@ class CatRepositoryImpl @Inject constructor(
 
     @ExperimentalPagingApi
     override fun getSearchResultStream(query: String): Flow<PagingData<CatResponse>> {
-        DebugHelper.log("CatRepositoryImpl|getSearchCat in")
+        Timber.d("repository search cat")
         return Pager(
             config = PagingConfig(pageSize = CatApi.NETWORK_PAGE_SIZE, enablePlaceholders = false),
             pagingSourceFactory = { CatApiPagingSource(catApi, query) },

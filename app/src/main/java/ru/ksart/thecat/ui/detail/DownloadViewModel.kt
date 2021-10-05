@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import ru.ksart.thecat.R
 import ru.ksart.thecat.model.repositories.DownloadRepository
-import ru.ksart.thecat.utils.DebugHelper
+import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 
@@ -46,7 +46,7 @@ class DownloadViewModel @Inject constructor(
                 repository.saveMedia(url)
                 _isToast.send(R.string.file_uploaded_to_gallery)
             } catch (e: Exception) {
-                DebugHelper.log("DownloadViewModel|saveMedia error", e)
+                Timber.e(e, "saveMedia error")
                 _isToast.send(R.string.file_upload_error)
             } finally {
                 _isLoading.value = false
@@ -71,7 +71,7 @@ class DownloadViewModel @Inject constructor(
                 repository.saveAsMedia(uri, saveToUrl)
                 _isToast.send(R.string.file_uploaded)
             } catch (e: Exception) {
-                DebugHelper.log("DownloadViewModel|saveAsMedia error", e)
+                Timber.e(e, "saveAsMedia error")
                 _isToast.send(R.string.file_upload_error)
             } finally {
                 _isLoading.value = false
@@ -85,7 +85,7 @@ class DownloadViewModel @Inject constructor(
             try {
                 _shareIntent.send(repository.getIntentToShareFile(url))
             } catch (e: Exception) {
-                DebugHelper.log("DownloadViewModel|share error", e)
+                Timber.e(e, "share error")
                 _isToast.send(R.string.share_intent_error)
             }
         }

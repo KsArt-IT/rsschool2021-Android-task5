@@ -6,7 +6,6 @@ import androidx.core.view.isVisible
 import androidx.paging.LoadState
 import androidx.recyclerview.widget.RecyclerView
 import ru.ksart.thecat.databinding.ItemLoadStateFooterBinding
-import ru.ksart.thecat.utils.DebugHelper
 
 class CatLoadStateViewHolder(
     private val binding: ItemLoadStateFooterBinding,
@@ -20,8 +19,6 @@ class CatLoadStateViewHolder(
     }
 
     fun bind(loadState: LoadState) {
-        DebugHelper.log("------------------------------------------")
-        DebugHelper.log("CatLoadStateViewHolder|bind")
         binding.run {
             errorMessage.text = if (loadState is LoadState.Error) loadState.error.localizedMessage
             else ""

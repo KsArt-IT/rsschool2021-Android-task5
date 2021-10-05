@@ -4,16 +4,14 @@ import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.Environment
 import android.provider.MediaStore
 import android.webkit.MimeTypeMap
-import androidx.core.net.toUri
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import ru.ksart.thecat.model.networking.DownloadApi
-import ru.ksart.thecat.utils.DebugHelper
 import ru.ksart.thecat.utils.isAndroidQ
+import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 
@@ -61,11 +59,7 @@ class DownloadRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getIntentToShareFile(url: String): Intent = withContext(Dispatchers.IO) {
-        DebugHelper.log("PotatoRepositoryImpl|getIntentToShareFile")
         require(url.isNotBlank()) { "Error url is blank" }
-        // запишем в кешь
-//        val uri = getUriBySaveToCacheDir(url)
-
         // проверить тип файла
         checkMimeTypeIsImage(url)
         // получим имя из url
@@ -84,7 +78,6 @@ class DownloadRepositoryImpl @Inject constructor(
                 flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
             }
 
-            DebugHelper.log("PotatoRepositoryImpl|getIntentToShareFile Intent")
             Intent.createChooser(intent, null)
         } catch (e: Exception) {
             // если ошибка удалить, созданный на устройстве файл
@@ -93,37 +86,11 @@ class DownloadRepositoryImpl @Inject constructor(
         }
     }
 
-    private suspend fun getUriBySaveToCacheDir(url: String): Uri {
-        DebugHelper.log("PotatoRepositoryImpl|getUriBySaveToCacheDir")
-        require(url.isNotBlank()) { "Url is blank" }
-        var file: File? = null
-        return try {
-            val folder =
-                if (Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED) {
-                    context.externalCacheDir
-                } else {
-                    context.cacheDir
-                }
-            val name = File(url).name
-            file = File(folder, name)
-            DebugHelper.log("PotatoRepositoryImpl|getUriBySaveToCacheDir file=$file")
-            downloadFile(url, file)
-            file.toUri()
-        } catch (e: Exception) {
-            DebugHelper.log("PotatoRepositoryImpl|getUriBySaveToCacheDir error: ${e.localizedMessage}")
-            try {
-                file?.takeIf { it.exists() }?.delete()
-            } catch (notUse: Exception) {
-            }
-            throw e
-        }
-    }
-
     // проверка типа по расширению файла
     private suspend fun checkMimeTypeIsImage(url: String) {
         val type = MimeTypeMap.getFileExtensionFromUrl(url)?.let { fileExtension ->
             MimeTypeMap.getSingleton().getMimeTypeFromExtension(fileExtension)?.takeIf {
-                DebugHelper.log("DownloadRepositoryImpl|checkMimeTypeIsImage mediaType=$it")
+                Timber.d("mediaType=$it")
                 it.startsWith("image/")
             }
         }
@@ -173,7 +140,7 @@ class DownloadRepositoryImpl @Inject constructor(
     }
 
     private suspend fun downloadFile(url: String, file: File) {
-        DebugHelper.log("PotatoRepositoryImpl|downloadFile file=$url")
+        Timber.d("file=$url")
         file.outputStream().use { fileOutputStream ->
             downloadApi.getFile(url)
                 .byteStream()
