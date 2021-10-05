@@ -9,7 +9,8 @@ import java.io.IOException
 
 class CatApiPagingSource(
     private val catApi: CatApi,
-    private val query: String
+    private val query: String,
+    private val onLoad: (Int) -> Unit
 ) : PagingSource<Int, CatResponse>() {
 
     override fun getRefreshKey(state: PagingState<Int, CatResponse>): Int? {
@@ -28,6 +29,7 @@ class CatApiPagingSource(
             if (response.isSuccessful) {
                 val catResponse = response.body() ?: emptyList()
                 Timber.d("load list=${catResponse.size}")
+                onLoad(catResponse.size)
                 val nextKey = if (catResponse.isEmpty()) {
                     null
                 } else {

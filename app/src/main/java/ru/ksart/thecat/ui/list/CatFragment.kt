@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import ru.ksart.thecat.R
 import ru.ksart.thecat.databinding.FragmentCatBinding
@@ -94,7 +95,7 @@ class CatFragment : Fragment() {
                     viewModel.breedList.collectLatest(::showBreedList)
                 }
                 launch {
-                    viewModel.breedState.collectLatest { state ->
+                    viewModel.breedState.onEach { delay(250) }.collectLatest { state ->
                         Timber.d("breed state")
                         if (state.breedQuery != state.lastBreedQuery) {
                             Timber.d("breed state select=${state.breedQuery} old=${state.lastBreedQuery}")
@@ -118,7 +119,9 @@ class CatFragment : Fragment() {
     }
 
     private fun changeBreedSelected(id: String, checked: Boolean) {
+        Timber.d("breed selected size=${breedAdapter.currentList.size}")
         breedAdapter.currentList.firstOrNull {
+            Timber.d("breed selected id=$id")
             it.id == id
         }?.apply {
             selected = checked
@@ -169,28 +172,26 @@ class CatFragment : Fragment() {
     private fun bindCatList() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.stateCatListData
-                    .collectLatest { (shouldScroll, pagingData) ->
-                        Timber.d("submitData list in")
-                        launch {
-                            views { emptyListTextView.isVisible = false }
-                            delay(5000)
-                            Timber.d("-------------------------------------")
-                            views {
-                                emptyListTextView.isVisible = catAdapter.itemCount == 0
-                                Timber.d("submitData list visible=${emptyListTextView.isVisible}")
-                                Timber.d("submitData list size=${catAdapter.itemCount}")
+                launch {
+                    viewModel.stateCatListData
+                        .collectLatest { (shouldScroll, pagingData) ->
+                            Timber.d("submitData list in")
+                            catAdapter.submitData(pagingData)
+                            // выполниться только последнее действие
+                            // Scroll only after the data has been submitted to the adapter,
+                            // and is a fresh search
+                            if (shouldScroll) {
+                                Timber.d("submitData list scrollToPosition=0")
+                                views { catList.scrollToPosition(0) }
                             }
                         }
-                        catAdapter.submitData(pagingData)
-                        // выполниться только последнее действие
-                        // Scroll only after the data has been submitted to the adapter,
-                        // and is a fresh search
-                        if (shouldScroll) {
-                            Timber.d("submitData list scrollToPosition=0")
-                            views { catList.scrollToPosition(0) }
-                        }
+                }
+                launch {
+                    viewModel.stateCatListSize.collectLatest {
+                        Timber.d("submitData list empty=${it} count=${catAdapter.itemCount}")
+                        views { emptyListTextView.isVisible = it }
                     }
+                }
             }
         }
     }

@@ -50,6 +50,9 @@ class CatViewModel @Inject constructor(
 
     val stateCatListData: Flow<Pair<Boolean, PagingData<CatResponse>>>
 
+    val stateCatListSize: StateFlow<Boolean>
+    private val onChangeCatListSize: (Int) -> Unit
+
     private val _breedList = MutableStateFlow<List<Breed>>(emptyList())
     val breedList = _breedList.asStateFlow()
 
@@ -148,6 +151,27 @@ class CatViewModel @Inject constructor(
             .onEach {
                 Timber.d("out")
             }
+
+        val changeCatListSize = MutableSharedFlow<Pair<Boolean, String>>()
+
+        onChangeCatListSize = { size ->
+            viewModelScope.launch {
+                Timber.d("changeCatListSize load = $size")
+                changeCatListSize.emit(Pair(size == 0, state.value.breedQuery))
+            }
+        }
+
+        stateCatListSize = changeCatListSize
+            .distinctUntilChangedBy { it.second }
+            .onEach {
+                Timber.d("changeCatListSize id=${it.second} = ${it.first}")
+            }
+            .map { it.first }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5000),
+                initialValue = true
+            )
     }
 
     fun loadState(notLoading: Flow<CombinedLoadStates>) {
@@ -184,17 +208,17 @@ class CatViewModel @Inject constructor(
                 Timber.d("in")
                 val list = repository.getBreedsList()
                 // загрузим список по породе или весь без породы
-                lastQuery = list.firstOrNull {
-                    it.id == lastQuery
-                }?.id ?: ""
                 initialQuery = list.firstOrNull {
                     it.id == initialQuery
                 }?.id ?: ""
+                lastQuery = list.firstOrNull {
+                    it.id == lastQuery
+                }?.id ?: "-|-"
                 accept(UiAction.Search(breedQuery = initialQuery))
                 accept(UiAction.Scroll(currentBreedQuery = lastQuery))
                 // добавим беспородных
                 listOf(Breed(id = "", name = "All Cats", selected = true)) + list
-//                listOf(Breed(id = "", name = "All Cats"),Breed(id = "-", name = "-")) + list
+//                listOf(Breed(id = "", name = "All Cats"), Breed(id = "-", name = "-")) + list
             } catch (e: Exception) {
                 Timber.e(e)
                 emptyList()
@@ -203,7 +227,7 @@ class CatViewModel @Inject constructor(
     }
 
     private fun searchCats(query: String): Flow<PagingData<CatResponse>> =
-        repository.getSearchResultStream(query)
+        repository.getSearchResultStream(query, onChangeCatListSize)
             .onEach {
                 Timber.d("query=$query")
             }
