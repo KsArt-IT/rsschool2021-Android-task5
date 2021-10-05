@@ -7,6 +7,7 @@ import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,6 +21,7 @@ import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -35,14 +37,16 @@ class CatViewModel @Inject constructor(
 //    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    val state: StateFlow<UiState>
+    private val state: StateFlow<UiState>
+    private val _breedStateChannel = Channel<UiState>()
+    val breedState = _breedStateChannel.receiveAsFlow()
 
     val accept: (UiAction) -> Unit
 
     private val shouldScrollToTop = MutableStateFlow(false)
 
-    private var lastQueryScrolled: String
     private var initialQuery: String
+    private var lastQuery: String
 
     val stateCatListData: Flow<Pair<Boolean, PagingData<CatResponse>>>
 
@@ -53,7 +57,7 @@ class CatViewModel @Inject constructor(
         searchBreeds()
 
         initialQuery = ""
-        lastQueryScrolled = ""
+        lastQuery = ""
 
         val actionStateFlow = MutableSharedFlow<UiAction>()
 
@@ -92,7 +96,6 @@ class CatViewModel @Inject constructor(
                 replay = 1
             )
 //            .onStart { emit(UiAction.Scroll(currentBreedQuery = lastQueryScrolled)) }
-
         state = searches
             .flatMapLatest { search ->
                 combine(
@@ -110,16 +113,17 @@ class CatViewModel @Inject constructor(
                     // queriesScrolled
                     .distinctUntilChangedBy { it.second }
                     .map { (scroll, pagingData) ->
-                        DebugHelper.log("CatViewModel|searches Scroll state new=${search.breedQuery} old=${scroll.currentBreedQuery}")
-                        // обновим currentBreedQuery для следующего вызова
-                        accept(UiAction.Scroll(currentBreedQuery = search.breedQuery))
                         UiState(
                             breedQuery = search.breedQuery,
                             pagingData = pagingData,
-                            lastBreedQueryScrolled = scroll.currentBreedQuery,
+                            lastBreedQuery = lastQuery,
                             // If the search query matches the scroll query, the user has scrolled
                             hasNotScrolledForCurrentSearch = search.breedQuery != scroll.currentBreedQuery
                         )
+                    }
+                    .onEach {
+                        lastQuery = it.breedQuery
+                        _breedStateChannel.send(it)
                     }
             }
             .stateIn(
@@ -149,6 +153,7 @@ class CatViewModel @Inject constructor(
             .onEach {
                 DebugHelper.log("CatViewModel|stateList out")
             }
+
     }
 
     fun loadState(notLoading: Flow<CombinedLoadStates>) {
@@ -191,14 +196,14 @@ class CatViewModel @Inject constructor(
                 DebugHelper.log("CatViewModel|searchBreeds")
                 val list = repository.getBreedsList()
                 // загрузим список по породе или весь без породы
-                lastQueryScrolled = list.firstOrNull {
-                    it.id == lastQueryScrolled
+                lastQuery = list.firstOrNull {
+                    it.id == lastQuery
                 }?.id ?: ""
                 initialQuery = list.firstOrNull {
                     it.id == initialQuery
                 }?.id ?: ""
                 accept(UiAction.Search(breedQuery = initialQuery))
-                accept(UiAction.Scroll(currentBreedQuery = lastQueryScrolled))
+                accept(UiAction.Scroll(currentBreedQuery = lastQuery))
                 // добавим беспородных
                 listOf(Breed(id = "", name = "All Cats", selected = true)) + list
 //                listOf(Breed(id = "", name = "All Cats"),Breed(id = "-", name = "-")) + list
@@ -224,7 +229,7 @@ sealed class UiAction {
 
 data class UiState(
     val breedQuery: String = "",
-    val lastBreedQueryScrolled: String = "",
+    val lastBreedQuery: String = "",
     val hasNotScrolledForCurrentSearch: Boolean = false,
     val pagingData: PagingData<CatResponse> = PagingData.empty()
 )

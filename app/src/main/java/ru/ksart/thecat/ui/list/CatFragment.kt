@@ -95,12 +95,16 @@ class CatFragment : Fragment() {
                     viewModel.breedList.collectLatest(::showBreedList)
                 }
                 launch {
-                    viewModel.state.collectLatest { state ->
+                    viewModel.breedState.collectLatest { state ->
+                        Timber.d("state.collectLatest")
+                        if (state.breedQuery != state.lastBreedQuery) {
+                            Timber.d("selectBreed ${state.breedQuery} != ${state.lastBreedQuery}")
+                            selectBreed(state.breedQuery, state.lastBreedQuery)
+                        }
                         if (state.hasNotScrolledForCurrentSearch) {
+                            Timber.d("catList.scrollToTop")
                             // прокручиваем
-//                            views { catList.scrollToPosition(0) }
-                            // меняем поиск
-                            selectBreed(state.breedQuery, state.lastBreedQueryScrolled)
+                            views { catList.scrollToPosition(0) }
                         }
                     }
                 }
@@ -109,6 +113,7 @@ class CatFragment : Fragment() {
     }
 
     private fun selectBreed(newId: String, oldId: String) {
+        Timber.d("catList.scrollToTop")
         changeBreedSelected(newId, true)
         changeBreedSelected(oldId, false)
     }
