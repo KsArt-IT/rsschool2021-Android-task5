@@ -21,7 +21,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import ru.ksart.thecat.R
 import ru.ksart.thecat.databinding.FragmentCatBinding
-import ru.ksart.thecat.model.data.Breed
 import ru.ksart.thecat.model.data.CatResponse
 import ru.ksart.thecat.ui.list.adapter.breed.BreedAdapter
 import ru.ksart.thecat.ui.list.adapter.cat.CatAdapter
@@ -62,10 +61,10 @@ class CatFragment : Fragment() {
         Timber.d("onViewCreated")
 
         initCatList()
-        bindCatList()
 
         initBreedList()
-        bindBreedList()
+
+        bindViewModel()
     }
 
     override fun onDestroyView() {
@@ -85,56 +84,6 @@ class CatFragment : Fragment() {
                 isNestedScrollingEnabled = false
             }
         }
-    }
-
-    private fun bindBreedList() {
-        // использование мульти flows
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch {
-                    viewModel.breedList.collectLatest(::showBreedList)
-                }
-                launch {
-                    viewModel.breedState.onEach { delay(250) }.collectLatest { state ->
-                        Timber.d("breed state")
-                        if (state.breedQuery != state.lastBreedQuery) {
-                            Timber.d("breed state select=${state.breedQuery} old=${state.lastBreedQuery}")
-                            selectBreed(state.breedQuery, state.lastBreedQuery)
-                        }
-                        if (state.hasNotScrolledForCurrentSearch) {
-                            Timber.d("breed state - cat list scroll to top")
-                            // прокручиваем
-                            views { catList.scrollToPosition(0) }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private fun selectBreed(newId: String, oldId: String) {
-        Timber.d("breed state select=$newId old=$oldId")
-        changeBreedSelected(newId, true)
-        changeBreedSelected(oldId, false)
-    }
-
-    private fun changeBreedSelected(id: String, checked: Boolean) {
-        Timber.d("breed selected size=${breedAdapter.currentList.size}")
-        breedAdapter.currentList.firstOrNull {
-            Timber.d("breed selected id=$id")
-            it.id == id
-        }?.apply {
-            selected = checked
-        }?.let {
-            breedAdapter.currentList.indexOf(it).also { index ->
-                Timber.d("breed selected = $id id=$index")
-            }.let(breedAdapter::notifyItemChanged)
-        }
-    }
-
-    private fun showBreedList(list: List<Breed>) {
-        Timber.d("breed list size=${list.size}")
-        breedAdapter.submitList(list)
     }
 
     private fun initCatList() {
@@ -169,9 +118,23 @@ class CatFragment : Fragment() {
         viewModel.loadState(catAdapter.loadStateFlow)
     }
 
-    private fun bindCatList() {
+    private fun showCatDetail(item: CatResponse) {
+        Timber.d(item.id)
+        val action = CatFragmentDirections.actionCatFragmentToCatDetailFragment(item)
+        // переход с анимацией
+        findNavController().navigate(action, navOptions)
+    }
+
+    private fun bindViewModel() {
+        // использование мульти flows
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                // Breed List
+                launch { viewModel.breedList.collectLatest(breedAdapter::submitList) }
+                launch {
+                    viewModel.breedState.onEach { delay(250) }.collectLatest(::changeBreedState)
+                }
+                // CatList
                 launch {
                     viewModel.stateCatListData
                         .collectLatest { (shouldScroll, pagingData) ->
@@ -196,11 +159,34 @@ class CatFragment : Fragment() {
         }
     }
 
-    private fun showCatDetail(item: CatResponse) {
-        Timber.d(item.id)
-        val action = CatFragmentDirections.actionCatFragmentToCatDetailFragment(item)
-        // переход с анимацией
-        findNavController().navigate(action, navOptions)
+    private fun changeBreedState(state: UiState) {
+        Timber.d("breed state - change")
+        if (state.breedQuery != state.lastBreedQuery) {
+            Timber.d("breed state - select=${state.breedQuery} old=${state.lastBreedQuery}")
+            // снимем старый выбор
+            changeBreedSelected(state.lastBreedQuery, false)
+            // установим новый выбор
+            changeBreedSelected(state.breedQuery, true)
+        }
+        if (state.hasNotScrolledForCurrentSearch) {
+            Timber.d("breed state - scroll cat list to top")
+            // прокручиваем
+            views { catList.scrollToPosition(0) }
+        }
+    }
+
+    private fun changeBreedSelected(id: String, checked: Boolean) {
+        Timber.d("breed selected size=${breedAdapter.currentList.size}")
+        breedAdapter.currentList.firstOrNull {
+            Timber.d("breed selected id=$id")
+            it.id == id
+        }?.apply {
+            selected = checked
+        }?.let {
+            breedAdapter.currentList.indexOf(it).also { index ->
+                Timber.d("breed selected = $id id=$index")
+            }.let(breedAdapter::notifyItemChanged)
+        }
     }
 
     private fun <T> views(block: FragmentCatBinding.() -> T): T? = binding?.block()

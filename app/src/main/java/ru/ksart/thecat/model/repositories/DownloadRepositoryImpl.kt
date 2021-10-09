@@ -139,17 +139,6 @@ class DownloadRepositoryImpl @Inject constructor(
         }
     }
 
-    private suspend fun downloadFile(url: String, file: File) {
-        Timber.d("file=$url")
-        file.outputStream().use { fileOutputStream ->
-            downloadApi.getFile(url)
-                .byteStream()
-                .use { inputStream ->
-                    inputStream.copyTo(fileOutputStream)
-                }
-        }
-    }
-
     // установим видимость нашего файла после загрузки
     private fun makeMediaVisible(mediaUri: Uri) {
         if (isAndroidQ.not()) return
