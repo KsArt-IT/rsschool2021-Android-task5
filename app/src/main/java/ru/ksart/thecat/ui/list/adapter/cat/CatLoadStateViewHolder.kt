@@ -22,7 +22,7 @@ class CatLoadStateViewHolder(
         binding.run {
             errorMessage.text = if (loadState is LoadState.Error) loadState.error.localizedMessage
             else ""
-            progress.isVisible = loadState is LoadState.Loading
+            progressState.isVisible = loadState is LoadState.Loading
             retryButton.isVisible = loadState is LoadState.Error
             errorMessage.isVisible = loadState is LoadState.Error
         }

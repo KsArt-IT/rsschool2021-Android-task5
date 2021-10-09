@@ -6,6 +6,6 @@ import ru.ksart.thecat.model.data.Breed
 import ru.ksart.thecat.model.data.CatResponse
 
 interface CatRepository {
-    fun getSearchResultStream(query: String, onLoad: (Int) -> Unit): Flow<PagingData<CatResponse>>
+    fun getSearchResultStream(query: String): Flow<PagingData<CatResponse>>
     suspend fun getBreedsList(): List<Breed>
 }

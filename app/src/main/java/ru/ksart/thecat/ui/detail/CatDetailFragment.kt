@@ -116,9 +116,11 @@ class CatDetailFragment : Fragment() {
     }
 
     private fun showLoading(isLoading: Boolean) {
-        binding.save.isEnabled = isLoading.not()
-        binding.saveAs.isEnabled = isLoading.not()
-        binding.share.isEnabled = isLoading.not()
-        binding.progress.isVisible = isLoading
+        binding.run {
+            save.isEnabled = isLoading.not()
+            saveAs.isEnabled = isLoading.not()
+            share.isEnabled = isLoading.not()
+            progress.isVisible = isLoading
+        }
     }
 }

@@ -1,5 +1,6 @@
 package ru.ksart.thecat.ui.list
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.CombinedLoadStates
@@ -34,7 +35,7 @@ import javax.inject.Inject
 @HiltViewModel
 class CatViewModel @Inject constructor(
     private val repository: CatRepository,
-//    private val savedStateHandle: SavedStateHandle
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val state: StateFlow<UiState>
@@ -50,16 +51,13 @@ class CatViewModel @Inject constructor(
 
     val stateCatListData: Flow<Pair<Boolean, PagingData<CatResponse>>>
 
-    val stateCatListSize: StateFlow<Boolean>
-    private val onChangeCatListSize: (Int) -> Unit
-
     private val _breedList = MutableStateFlow<List<Breed>>(emptyList())
     val breedList = _breedList.asStateFlow()
 
     init {
         searchBreeds()
 
-        initialQuery = ""
+        initialQuery = savedStateHandle.get(LAST_SEARCH_QUERY) ?: DEFAULT_QUERY
         lastQuery = ""
 
         val actionStateFlow = MutableSharedFlow<UiAction>()
@@ -77,12 +75,6 @@ class CatViewModel @Inject constructor(
                 Timber.d("searches actionStateFlow search=${it.breedQuery}")
             }
             .distinctUntilChanged()
-/*
-            .onStart {
-                DebugHelper.log("CatViewModel|searches actionStateFlow")
-                emit(UiAction.Search(breedQuery = initialQuery))
-            }
-*/
 
         val queriesScrolled = actionStateFlow
             .filterIsInstance<UiAction.Scroll>()
@@ -97,7 +89,6 @@ class CatViewModel @Inject constructor(
                 started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5000),
                 replay = 1
             )
-//            .onStart { emit(UiAction.Scroll(currentBreedQuery = lastQueryScrolled)) }
 
         state = searches
             .flatMapLatest { search ->
@@ -151,27 +142,6 @@ class CatViewModel @Inject constructor(
             .onEach {
                 Timber.d("out")
             }
-
-        val changeCatListSize = MutableSharedFlow<Pair<Boolean, String>>()
-
-        onChangeCatListSize = { size ->
-            viewModelScope.launch {
-                Timber.d("changeCatListSize load = $size")
-                changeCatListSize.emit(Pair(size == 0, state.value.breedQuery))
-            }
-        }
-
-        stateCatListSize = changeCatListSize
-            .distinctUntilChangedBy { it.second }
-            .onEach {
-                Timber.d("changeCatListSize id=${it.second} = ${it.first}")
-            }
-            .map { it.first }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5000),
-                initialValue = true
-            )
     }
 
     fun loadState(notLoading: Flow<CombinedLoadStates>) {
@@ -213,7 +183,7 @@ class CatViewModel @Inject constructor(
                 }?.id ?: ""
                 lastQuery = list.firstOrNull {
                     it.id == lastQuery
-                }?.id ?: "-|-"
+                }?.id ?: ""
                 accept(UiAction.Search(breedQuery = initialQuery))
                 accept(UiAction.Scroll(currentBreedQuery = lastQuery))
                 // добавим беспородных
@@ -227,11 +197,24 @@ class CatViewModel @Inject constructor(
     }
 
     private fun searchCats(query: String): Flow<PagingData<CatResponse>> =
-        repository.getSearchResultStream(query, onChangeCatListSize)
+        repository.getSearchResultStream(query)
             .onEach {
                 Timber.d("query=$query")
             }
             .cachedIn(viewModelScope)
+
+    override fun onCleared() {
+        savedStateHandle[LAST_SEARCH_QUERY] = state.value.breedQuery
+        savedStateHandle[LAST_QUERY_SCROLLED] = state.value.lastBreedQuery
+
+        super.onCleared()
+    }
+
+    companion object {
+        private const val LAST_SEARCH_QUERY: String = "last_search_query"
+        private const val LAST_QUERY_SCROLLED: String = "last_query_scrolled"
+        private const val DEFAULT_QUERY = ""
+    }
 }
 
 sealed class UiAction {

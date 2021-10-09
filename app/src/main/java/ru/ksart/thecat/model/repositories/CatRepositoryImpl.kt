@@ -25,11 +25,11 @@ class CatRepositoryImpl @Inject constructor(
     }
 
     @ExperimentalPagingApi
-    override fun getSearchResultStream(query: String, onLoad: (Int) -> Unit): Flow<PagingData<CatResponse>> {
+    override fun getSearchResultStream(query: String): Flow<PagingData<CatResponse>> {
         Timber.d("repository search cat")
         return Pager(
             config = PagingConfig(pageSize = CatApi.NETWORK_PAGE_SIZE, enablePlaceholders = false),
-            pagingSourceFactory = { CatApiPagingSource(catApi, query, onLoad) },
+            pagingSourceFactory = { CatApiPagingSource(catApi, query) },
 //            remoteMediator = CatRemoteMediator(catDao, catApi)
         ).flow
     }

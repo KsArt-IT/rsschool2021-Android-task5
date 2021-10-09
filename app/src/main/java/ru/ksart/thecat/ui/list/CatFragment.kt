@@ -12,10 +12,12 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
+import androidx.paging.LoadState
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -114,6 +116,8 @@ class CatFragment : Fragment() {
                     }
                 })
             }
+            // кнопка повторить
+            retryButton.setOnClickListener { catAdapter.retry() }
         }
         viewModel.loadState(catAdapter.loadStateFlow)
     }
@@ -150,9 +154,29 @@ class CatFragment : Fragment() {
                         }
                 }
                 launch {
-                    viewModel.stateCatListSize.collectLatest {
-                        Timber.d("submitData list empty=${it} count=${catAdapter.itemCount}")
-                        views { emptyListTextView.isVisible = it }
+                    catAdapter.loadStateFlow.collect { loadState ->
+                        val isListEmpty =
+                            loadState.refresh is LoadState.NotLoading && catAdapter.itemCount == 0
+                        views {
+                            // show empty list
+                            emptyListTextView.isVisible = isListEmpty
+                            // Only show the list if refresh succeeds.
+                            catList.isVisible = !isListEmpty
+                            // Show loading spinner during initial load or refresh.
+                            progressBar.isVisible = loadState.source.refresh is LoadState.Loading
+                            // Show the retry state if initial load or refresh fails.
+                            retryButton.isVisible = loadState.source.refresh is LoadState.Error
+                        }
+/*
+                        // Toast on any error, regardless of whether it came from RemoteMediator or PagingSource
+                        val errorState = loadState.source.append as? LoadState.Error
+                            ?: loadState.source.prepend as? LoadState.Error
+                            ?: loadState.append as? LoadState.Error
+                            ?: loadState.prepend as? LoadState.Error
+                        errorState?.let {
+                            toast("\uD83D\uDE28 Wooops ${it.error}")
+                        }
+*/
                     }
                 }
             }
