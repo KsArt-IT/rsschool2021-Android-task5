@@ -3,7 +3,7 @@ package ru.ksart.thecat.model.networking
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Query
-import ru.ksart.thecat.model.data.Breed
+import ru.ksart.thecat.model.data.BreedResponse
 import ru.ksart.thecat.model.data.CatResponse
 
 interface CatApi {
@@ -17,7 +17,7 @@ interface CatApi {
     ): Response<List<CatResponse>>
 
     @GET("breeds")
-    suspend fun searchBreeds(): List<Breed>
+    suspend fun searchBreeds(): List<BreedResponse>
 
     companion object {
         const val BASE_URL = "https://api.thecatapi.com/v1/"

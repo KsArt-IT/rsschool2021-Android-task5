@@ -7,7 +7,7 @@ import androidx.paging.PagingData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
-import ru.ksart.thecat.model.data.Breed
+import ru.ksart.thecat.model.data.BreedResponse
 import ru.ksart.thecat.model.data.CatResponse
 import ru.ksart.thecat.model.db.CatDao
 import ru.ksart.thecat.model.networking.CatApi
@@ -20,7 +20,7 @@ class CatRepositoryImpl @Inject constructor(
     private val catDao: CatDao,
 ) : CatRepository {
 
-    override suspend fun getBreedsList(): List<Breed> = withContext(Dispatchers.IO) {
+    override suspend fun getBreedsList(): List<BreedResponse> = withContext(Dispatchers.IO) {
         catApi.searchBreeds()
     }
 

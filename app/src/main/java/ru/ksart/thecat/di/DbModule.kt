@@ -9,7 +9,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import ru.ksart.thecat.model.db.CatDao
 import ru.ksart.thecat.model.db.CatDb
-import ru.ksart.thecat.model.db.room.CatRoomDbImpl
+import ru.ksart.thecat.model.db.CatDbImpl
 import javax.inject.Qualifier
 import javax.inject.Singleton
 
@@ -23,7 +23,7 @@ class DbModule {
     fun provideCatDb(@ApplicationContext context: Context): CatDb {
         return Room.databaseBuilder(
             context,
-            CatRoomDbImpl::class.java,
+            CatDbImpl::class.java,
             CatDb.DB_NAME
         )
             .fallbackToDestructiveMigration()

@@ -4,7 +4,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import ru.ksart.thecat.databinding.ItemBreedBinding
-import ru.ksart.thecat.model.data.Breed
+import ru.ksart.thecat.model.data.BreedResponse
 import ru.ksart.thecat.ui.list.UiAction
 import timber.log.Timber
 
@@ -13,7 +13,7 @@ class BreedViewHolder(
     onClick: (UiAction.Search) -> Unit
 ) : RecyclerView.ViewHolder(binding.root) {
 
-    var item: Breed? = null
+    var item: BreedResponse? = null
         private set
 
     init {
@@ -28,7 +28,7 @@ class BreedViewHolder(
         }
     }
 
-    fun bind(item: Breed) {
+    fun bind(item: BreedResponse) {
         this.item = item
 
         binding.run {

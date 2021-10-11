@@ -35,6 +35,9 @@ class DownloadViewModel @Inject constructor(
     private val _shareIntent = Channel<Intent?>()
     val shareIntent = _shareIntent.receiveAsFlow()
 
+    private val _isPermissionsGranted = MutableStateFlow(true)
+    val isPermissionsGranted = _isPermissionsGranted.asStateFlow()
+
     fun saveMedia(url: String) {
         viewModelScope.launch {
             if (url.isBlank()) {
@@ -89,5 +92,10 @@ class DownloadViewModel @Inject constructor(
                 _isToast.send(R.string.share_intent_error)
             }
         }
+    }
+
+    fun onPermissions(isGranted: Boolean) {
+        Timber.d("isGranted=$isGranted")
+        _isPermissionsGranted.value = isGranted
     }
 }

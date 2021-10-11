@@ -26,7 +26,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import ru.ksart.thecat.model.data.Breed
+import ru.ksart.thecat.model.data.BreedResponse
 import ru.ksart.thecat.model.data.CatResponse
 import ru.ksart.thecat.model.repositories.CatRepository
 import timber.log.Timber
@@ -51,7 +51,7 @@ class CatViewModel @Inject constructor(
 
     val stateCatListData: Flow<Pair<Boolean, PagingData<CatResponse>>>
 
-    private val _breedList = MutableStateFlow<List<Breed>>(emptyList())
+    private val _breedList = MutableStateFlow<List<BreedResponse>>(emptyList())
     val breedList = _breedList.asStateFlow()
 
     init {
@@ -187,7 +187,7 @@ class CatViewModel @Inject constructor(
                 accept(UiAction.Search(breedQuery = initialQuery))
                 accept(UiAction.Scroll(currentBreedQuery = lastQuery))
                 // добавим беспородных
-                listOf(Breed(id = "", name = "All Cats", selected = true)) + list
+                listOf(BreedResponse(id = "", name = "All Cats", selected = true)) + list
 //                listOf(Breed(id = "", name = "All Cats"), Breed(id = "-", name = "-")) + list
             } catch (e: Exception) {
                 Timber.e(e)

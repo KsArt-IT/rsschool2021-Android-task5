@@ -7,7 +7,7 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 @JsonClass(generateAdapter = true)
-data class Breed(
+data class BreedResponse(
     var selected: Boolean = false,
     @Json(name = "id")
     val id: String,
@@ -21,6 +21,4 @@ data class Breed(
     val origin: String = "",
     @Json(name = "wikipedia_url")
     val wikipedia: String = "",
-    @Json(name = "image")
-    val breedImage: BreedImage? = null,
 ) : Parcelable

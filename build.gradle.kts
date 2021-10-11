@@ -10,7 +10,7 @@ buildscript {
 
         classpath("com.google.dagger:hilt-android-gradle-plugin:2.39.1")
         classpath("androidx.navigation:navigation-safe-args-gradle-plugin:2.3.5")
-//        classpath("io.gitlab.arturbosch.detekt:detekt-gradle-plugin:1.18.1")
+        classpath("io.gitlab.arturbosch.detekt:detekt-gradle-plugin:1.18.1")
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }

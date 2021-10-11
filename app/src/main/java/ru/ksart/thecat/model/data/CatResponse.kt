@@ -13,6 +13,6 @@ data class CatResponse(
     @Json(name = "url")
     val url: String,
     @Json(name = "breeds")
-    val breeds: List<Breed> = emptyList(),
+    val breedResponses: List<BreedResponse> = emptyList(),
 //    var indexInResponse: Int = -1,
 ) : Parcelable
